@@ -19,7 +19,25 @@ public class UserResource {
     }
 
     @GetMapping
-    public List<User> listUser() {
+    public List<User> listUser(@RequestParam(required = false, defaultValue = "") String condition,
+                               @RequestParam(required = false, defaultValue = "") String keyword) {
+        if (condition != null && condition.length() > 0 && keyword != null && keyword.length() > 0) {
+
+            List <User> searchUserList = new ArrayList<>();
+            for (User user: userList) {;
+                if ("userId".equals(condition) && user.getUserId() != null && user.getUserId().indexOf(keyword) > -1)
+                    searchUserList.add(user);
+                else if ("name".equals(condition) && user.getName() != null && user.getName().indexOf(keyword) > -1)
+                    searchUserList.add(user);
+                else if ("email".equals(condition) && user.getEmail() != null && user.getEmail().indexOf(keyword) > -1)
+                    searchUserList.add(user);
+                else if ("tel".equals(condition) && user.getTel() != null && user.getTel().indexOf(keyword) > -1)
+                    searchUserList.add(user);
+            }
+
+            return searchUserList;
+        }
+
         return userList;
     }
 
