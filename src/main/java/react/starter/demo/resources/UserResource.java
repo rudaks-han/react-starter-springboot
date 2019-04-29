@@ -1,21 +1,28 @@
 package react.starter.demo.resources;
 
+import com.google.gson.Gson;
 import org.springframework.web.bind.annotation.*;
 import react.starter.demo.models.User;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
 @RestController
 @RequestMapping("/users")
 public class UserResource {
+    String filePath = System.getProperty("user.dir") + "/userList.json";
+    Gson gson = new Gson();
 
     private List<User> userList;
 
     public UserResource() {
+
         userList = new ArrayList<>();
+
+        readFromFile();
     }
 
     @GetMapping
@@ -71,6 +78,8 @@ public class UserResource {
         addUser.setTel(paramUser.getTel());
         userList.add(addUser);
 
+        writeToFile(userList);
+
         return id;
     }
 
@@ -116,5 +125,34 @@ public class UserResource {
         }
 
         return id;
+    }
+
+    private void readFromFile() {
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(filePath));
+
+            User[] users = new Gson().fromJson(br, User[].class);
+            userList = Arrays.asList(users);
+
+            System.out.println("read from path : " + filePath);
+
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeToFile(List<User> list) {
+
+        try {
+            FileWriter writer = new FileWriter(filePath);
+            writer.write(gson.toJson(list));
+            writer.close();
+
+            System.out.println("write to path : " + filePath);
+
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
     }
 }
