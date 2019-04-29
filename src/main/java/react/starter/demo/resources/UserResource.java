@@ -41,7 +41,7 @@ public class UserResource {
         return null;
     }
 
-    @PostMapping("")
+    @PostMapping
     public String createUser(@RequestBody User paramUser) {
         User addUser = new User();
 
