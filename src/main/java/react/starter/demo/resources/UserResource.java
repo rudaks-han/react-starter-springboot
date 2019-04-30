@@ -1,24 +1,29 @@
 package react.starter.demo.resources;
 
+import com.google.gson.Gson;
 import org.springframework.web.bind.annotation.*;
 import react.starter.demo.models.User;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
 @RestController
 @RequestMapping("/users")
 public class UserResource {
+    private String filePath;
+    private Gson gson;
 
     private List<User> userList;
 
     public UserResource() {
-
         userList = new ArrayList<>();
+        gson = new Gson();
+        filePath = System.getProperty("user.dir") + "/userList.json";
 
-        //readFromFile();
+        readFromFile();
     }
 
     @GetMapping
@@ -51,6 +56,7 @@ public class UserResource {
 
         for (User user : userList) {
             if (id.equals(user.getId())) {
+                found = true;
                 return user;
             }
         }
@@ -64,17 +70,12 @@ public class UserResource {
 
     @PostMapping
     public String createUser(@RequestBody User paramUser) {
-        User addUser = new User();
-
-        String id = UUID.randomUUID().toString();
-        addUser.setId(id);
-        addUser.setUserId(paramUser.getUserId());
-        addUser.setName(paramUser.getName());
-        addUser.setEmail(paramUser.getEmail());
-        addUser.setTel(paramUser.getTel());
+        User addUser = new User(paramUser.getUserId(), paramUser.getName(), paramUser.getEmail(), paramUser.getTel());
         userList.add(addUser);
 
-        return id;
+        writeToFile(userList);
+
+        return addUser.getId();
     }
 
     @PutMapping("{id}")
@@ -96,6 +97,8 @@ public class UserResource {
 
         if (!found) {
             throw new NoSuchElementException("userId not found [" + id + "]");
+        } else {
+            writeToFile(userList);
         }
 
         return id;
@@ -116,8 +119,41 @@ public class UserResource {
 
         if (!found) {
             throw new NoSuchElementException("userId not found [" + id + "]");
+        } else {
+            writeToFile(userList);
         }
 
         return id;
+    }
+
+    private void readFromFile() {
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(filePath));
+
+            User[] users = new Gson().fromJson(br, User[].class);
+
+            //userList = Arrays.asList(users); // 고정크기로 생성
+            userList = new ArrayList<>(Arrays.asList(users)); // 가변크기로 생성
+
+            System.out.println("read from path : " + filePath);
+
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeToFile(List<User> list) {
+
+        try {
+            FileWriter writer = new FileWriter(filePath);
+            writer.write(gson.toJson(list));
+            writer.close();
+
+            System.out.println("write to path : " + filePath);
+
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
     }
 }
